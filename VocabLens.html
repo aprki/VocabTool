@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VocabLens — Vocabulary Highlighter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1a2e;--paper:#faf8f4;--cream:#f0ebe0;--accent:#c8553d;--accent2:#4a7c6f;--gold:#d4a847;--muted:#8a8070;--card:#fff;--border:#e2ddd4;--shadow:0 4px 24px rgba(26,26,46,.08);--shadow-lg:0 12px 48px rgba(26,26,46,.14)
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans','Noto Sans TC',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;overflow-x:hidden}
+  header{background:var(--ink);padding:0 40px;display:flex;align-items:center;justify-content:space-between;min-height:68px;position:sticky;top:0;z-index:100;border-bottom:3px solid var(--accent);gap:10px;flex-wrap:wrap}
+  .logo{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--paper);letter-spacing:-.5px;cursor:pointer}.logo span{color:var(--accent)}
+  nav{display:flex;gap:4px;flex-wrap:wrap}.nav-btn{padding:8px 14px;border-radius:8px;border:0;background:transparent;color:#aaa;font-family:'DM Sans',sans-serif;font-size:.86rem;font-weight:600;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:6px}.nav-btn:hover,.nav-btn.active{background:rgba(255,255,255,.12);color:#fff}.bank-count{background:var(--accent);color:#fff;border-radius:10px;padding:1px 7px;font-size:.72rem;font-weight:700}
+  .page{display:none}.page.active{display:block}
+  .hero{background:var(--ink);padding:52px 40px 44px;text-align:center;position:relative;overflow:hidden}.hero:before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 0%,rgba(200,85,61,.18),transparent 60%),radial-gradient(ellipse at 20% 100%,rgba(74,124,111,.15),transparent 55%)}
+  .hero h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.35rem);color:var(--paper);line-height:1.1;margin-bottom:14px;position:relative}.hero h1 em{color:var(--accent);font-style:normal}.hero p{color:#aaa;font-size:.98rem;font-weight:300;max-width:620px;margin:0 auto;line-height:1.7;position:relative}
+  main{max-width:1050px;margin:0 auto;padding:36px 24px 80px}.notice{background:rgba(74,124,111,.09);border:1px solid rgba(74,124,111,.25);border-radius:12px;padding:14px 18px;margin-bottom:24px;color:#31574e;font-size:.9rem;line-height:1.7}
+  .panel{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:24px}.panel-head{background:var(--cream);padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.panel-title{font-weight:700;font-size:.96rem;display:flex;align-items:center;gap:10px}.num{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700}
+  textarea{width:100%;min-height:180px;padding:18px 22px;border:0;resize:vertical;font-family:'DM Sans',sans-serif;font-size:.95rem;line-height:1.75;color:var(--ink);outline:0}textarea::placeholder{color:#aaa}
+  .toolbar{padding:14px 20px;background:var(--cream);border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center}.btn{padding:10px 18px;border-radius:10px;border:2px solid transparent;font-family:'DM Sans',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer;transition:.2s;background:#fff;color:var(--ink)}.btn:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(26,26,46,.12)}.btn-primary{background:var(--accent);color:#fff}.btn-secondary{background:var(--accent2);color:#fff}.btn-outline{border-color:var(--accent2);color:var(--accent2);background:transparent}.btn-danger{border-color:rgba(200,85,61,.4);color:var(--accent);background:transparent}.small-note{font-size:.78rem;color:var(--muted);line-height:1.5}.grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.8fr);gap:22px;align-items:start}.reader{padding:24px;min-height:360px;font-family:'DM Sans',sans-serif;font-size:1.02rem;line-height:2;color:#252538;white-space:pre-wrap;outline:0}.reader:empty:before{content:'Paste an article above, then click “Create Reading Page”.';color:#aaa}.reader mark{background:#ffe08a;border-radius:5px;padding:1px 3px}.reader::selection{background:rgba(212,168,71,.45)}
+  .form{padding:20px}.field{margin-bottom:14px}.field label{display:block;font-size:.74rem;text-transform:uppercase;letter-spacing:1.3px;font-weight:800;color:var(--muted);margin-bottom:6px}.field input,.field textarea,.field select{width:100%;border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;font-family:'DM Sans','Noto Sans TC',sans-serif;font-size:.9rem;background:#fff;outline:0}.field textarea{min-height:78px;resize:vertical}.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent2)}
+  .selected-preview{background:var(--cream);border:1px dashed var(--border);border-radius:10px;padding:12px;margin-bottom:14px;font-size:.88rem;color:var(--muted);line-height:1.6}.selected-preview strong{color:var(--ink)}
+  .stats{display:grid;grid-template-columns:repeat(3,minmax(110px,1fr));gap:14px;margin-bottom:24px}.stat{background:#fff;border:1px solid var(--border);border-radius:13px;padding:16px;text-align:center;box-shadow:var(--shadow)}.stat-num{font-family:'Playfair Display',serif;font-size:2rem;color:var(--accent);font-weight:800}.stat-label{font-size:.75rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px}
+  .bank-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}.search{flex:1;min-width:200px;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;background:#fff;outline:0}.search:focus{border-color:var(--accent2)}.tabs{display:flex;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff;margin-bottom:22px}.tab{flex:1;padding:11px 8px;border:0;border-right:1px solid var(--border);background:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;color:var(--muted)}.tab:last-child{border-right:0}.tab.active{background:var(--ink);color:#fff}
+  .bank-list{display:flex;flex-direction:column;gap:10px}.word-row{background:#fff;border:1px solid var(--border);border-radius:13px;padding:14px 16px;display:grid;grid-template-columns:150px 80px 160px minmax(160px,1fr) 36px;gap:12px;align-items:center;box-shadow:var(--shadow)}.word{font-family:'Playfair Display',serif;font-size:1.12rem;font-weight:700}.pos{font-size:.7rem;text-transform:uppercase;letter-spacing:1px;font-weight:800;color:var(--accent);background:rgba(200,85,61,.08);padding:4px 8px;border-radius:7px;text-align:center}.zh{font-family:'Noto Sans TC',sans-serif;font-weight:800;color:var(--accent2)}.def{font-size:.84rem;line-height:1.55;color:#5b5b66}.del{border:0;background:transparent;color:#bbb;cursor:pointer;font-size:1.05rem}.del:hover{color:var(--accent)}.empty{text-align:center;color:var(--muted);padding:56px 18px;line-height:1.7}.empty .big{font-size:3.2rem;margin-bottom:12px}
+  .flash-wrap{perspective:1000px;max-width:500px;margin:0 auto}.flash{height:270px;position:relative;transform-style:preserve-3d;transition:.5s;cursor:pointer}.flash.flipped{transform:rotateY(180deg)}.face{position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center}.front{background:var(--ink);color:#fff}.back{background:#fff;transform:rotateY(180deg)}.fc-word{font-family:'Playfair Display',serif;font-size:2.25rem}.fc-pos{color:var(--accent);text-transform:uppercase;font-weight:800;letter-spacing:1px;margin-top:8px}.fc-zh{font-family:'Noto Sans TC',sans-serif;color:var(--accent2);font-size:1.6rem;font-weight:800}.fc-def{margin-top:10px;color:#555;line-height:1.6;font-size:.9rem}.fc-ex{margin-top:10px;color:var(--muted);font-size:.82rem;font-style:italic}.fc-controls{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:18px}.counter{color:var(--muted);font-weight:700;min-width:70px;text-align:center}
+  .quiz-card{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:14px}.quiz-card h3{font-size:1rem;margin-bottom:12px}.option{display:block;width:100%;border:1.5px solid var(--border);background:#fff;padding:11px 14px;border-radius:10px;margin:8px 0;text-align:left;font-family:'DM Sans','Noto Sans TC',sans-serif;cursor:pointer}.option.correct{border-color:var(--accent2);background:rgba(74,124,111,.1)}.option.wrong{border-color:var(--accent);background:rgba(200,85,61,.08)}.score{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:20px;text-align:center;margin-top:18px}.score b{font-family:'Playfair Display',serif;font-size:2.5rem;color:var(--accent2)}
+  .export-box{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:22px;line-height:1.7}.export-box h3{font-family:'Playfair Display',serif;font-size:1.35rem;margin-bottom:8px}
+  @media(max-width:820px){header{padding:10px 16px}.grid{grid-template-columns:1fr}.word-row{grid-template-columns:1fr;gap:8px}.pos{text-align:left;width:max-content}.stats{grid-template-columns:1fr}.tabs{flex-wrap:wrap}.tab{min-width:50%;border-bottom:1px solid var(--border)}main{padding:26px 14px 60px}.hero{padding:38px 18px}}
+  @media print{header,.hero,#page-read,.tabs,.bank-toolbar,.del,.fc-controls,.export-box{display:none!important}body{background:#fff}.page{display:block!important}.word-row{box-shadow:none;break-inside:avoid}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo" onclick="showPage('read')">Vocab<span>Lens</span></div>
+  <nav>
+    <button class="nav-btn active" id="nav-read" onclick="showPage('read')">🖍️ Read & Highlight</button>
+    <button class="nav-btn" id="nav-bank" onclick="showPage('bank')">🗂 My Bank <span class="bank-count" id="bankCount">0</span></button>
+  </nav>
+</header>
+
+<section class="page active" id="page-read">
+  <div class="hero">
+    <h1>Highlight Words.<br><em>Build Your Own Vocabulary Bank.</em></h1>
+    <p>Paste an article, select unfamiliar words or phrases, and save them with your own Chinese notes. No API key. No token cost. Works on GitHub Pages.</p>
+  </div>
+  <main>
+    <div class="notice">使用方式：貼上英文文章 → 建立閱讀頁 → 用滑鼠選取單字或片語 → 按「Use Selection」→ 補上中文意思或筆記 → 存入 My Bank。</div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title"><span class="num">1</span>Paste Your Article</div><span class="small-note">Everything stays in this browser through localStorage.</span></div>
+      <textarea id="articleInput" placeholder="Paste an English article here..."></textarea>
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="createReader()">Create Reading Page</button>
+        <button class="btn btn-outline" onclick="loadSample()">Load Sample</button>
+        <button class="btn btn-danger" onclick="clearArticle()">Clear</button>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title"><span class="num">2</span>Reading Area</div><button class="btn btn-secondary" onclick="useSelection()">Use Selection</button></div>
+        <div id="reader" class="reader" tabindex="0"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title"><span class="num">3</span>Add to Bank</div></div>
+        <div class="form">
+          <div class="selected-preview" id="selectedPreview">Selected text: <strong>none</strong></div>
+          <div class="field"><label>Word / Phrase</label><input id="wordInput" placeholder="e.g. sustainable" /></div>
+          <div class="field"><label>Part of Speech</label><select id="posInput"><option value="word">word</option><option value="noun">noun</option><option value="verb">verb</option><option value="adjective">adjective</option><option value="adverb">adverb</option><option value="phrase">phrase</option></select></div>
+          <div class="field"><label>中文意思 / 筆記</label><input id="zhInput" placeholder="例如：永續的；可持續的" /></div>
+          <div class="field"><label>English Definition / Note</label><textarea id="defInput" placeholder="Optional: simple English meaning or your note"></textarea></div>
+          <div class="field"><label>Example / Context Sentence</label><textarea id="exInput" placeholder="Optional: sentence from the article"></textarea></div>
+          <button class="btn btn-primary" style="width:100%" onclick="saveCurrentWord()">Save Word</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</section>
+
+<section class="page" id="page-bank">
+  <div class="hero">
+    <h1>Your <em>Vocabulary Bank</em></h1>
+    <p>Review saved words, make simple offline quizzes, and export your list for class.</p>
+  </div>
+  <main>
+    <div class="stats">
+      <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total Words</div></div>
+      <div class="stat"><div class="stat-num" id="statToday">0</div><div class="stat-label">Added Today</div></div>
+      <div class="stat"><div class="stat-num" id="statWithZh">0</div><div class="stat-label">With Chinese Notes</div></div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" id="tab-list" onclick="switchMode('list')">📋 Word List</button>
+      <button class="tab" id="tab-flash" onclick="switchMode('flash')">🃏 Flashcards</button>
+      <button class="tab" id="tab-quiz" onclick="switchMode('quiz')">✏️ Offline Quiz</button>
+      <button class="tab" id="tab-export" onclick="switchMode('export')">📤 Export</button>
+    </div>
+
+    <div id="mode-list">
+      <div class="bank-toolbar"><input id="searchInput" class="search" oninput="renderBank()" placeholder="Search word, Chinese note, or definition..." /><button class="btn btn-danger" onclick="clearBank()">Clear Bank</button></div>
+      <div class="bank-list" id="bankList"></div>
+    </div>
+
+    <div id="mode-flash" style="display:none">
+      <div class="flash-wrap"><div class="flash" id="flashcard" onclick="flipCard()"><div class="face front"><div class="fc-word" id="fcWord">—</div><div class="fc-pos" id="fcPos"></div><div class="small-note" style="color:#999;margin-top:18px">tap to reveal</div></div><div class="face back"><div class="fc-zh" id="fcZh">—</div><div class="fc-def" id="fcDef"></div><div class="fc-ex" id="fcEx"></div></div></div></div>
+      <div class="fc-controls"><button class="btn btn-outline" onclick="moveCard(-1)">← Prev</button><span class="counter" id="fcCounter">0 / 0</span><button class="btn btn-outline" onclick="moveCard(1)">Next →</button></div>
+    </div>
+
+    <div id="mode-quiz" style="display:none">
+      <div class="export-box" style="margin-bottom:16px"><h3>Offline Quiz</h3><p>This version creates basic multiple-choice questions from your saved Chinese notes. It does not use AI, so quality depends on the notes you enter.</p><button class="btn btn-secondary" onclick="startQuiz()">Generate Quiz</button></div>
+      <div id="quizBox"></div>
+    </div>
+
+    <div id="mode-export" style="display:none">
+      <div class="export-box"><h3>Export Your Vocabulary</h3><p>Download a CSV file or print the word list as a PDF through your browser.</p><button class="btn btn-secondary" onclick="exportCSV()">Download CSV</button> <button class="btn btn-outline" onclick="window.print()">Print / Save PDF</button></div>
+    </div>
+  </main>
+</section>
+
+<script>
+const BANK_KEY='vocablens_highlight_bank_v1';
+let selectedRange=null;let flashIndex=0;let flipped=false;let quizState=[];let answered=0;let correct=0;
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function loadBank(){try{return JSON.parse(localStorage.getItem(BANK_KEY)||'[]')}catch(e){return[]}}
+function saveBank(b){localStorage.setItem(BANK_KEY,JSON.stringify(b));updateStats()}
+function normalizeWord(s){return String(s||'').trim().replace(/^\W+|\W+$/g,'').replace(/\s+/g,' ')}
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');document.getElementById('nav-'+id).classList.add('active');if(id==='bank'){updateStats();renderBank();}}
+function createReader(){const text=document.getElementById('articleInput').value.trim();document.getElementById('reader').textContent=text||'';selectedRange=null;document.getElementById('selectedPreview').innerHTML='Selected text: <strong>none</strong>';highlightSavedInReader()}
+function clearArticle(){if(confirm('Clear article text and reading area?')){document.getElementById('articleInput').value='';document.getElementById('reader').textContent='';}}
+function loadSample(){document.getElementById('articleInput').value='Sustainable cities require careful planning, efficient transportation, and resilient infrastructure. When communities evaluate new policies, they often consider environmental impact, financial feasibility, and long-term consequences. Students can highlight unfamiliar words, write their own notes, and review them later.';createReader()}
+function useSelection(){const sel=window.getSelection();const text=normalizeWord(sel.toString());if(!text){alert('Please select a word or phrase in the reading area first.');return}const reader=document.getElementById('reader');if(!reader.contains(sel.anchorNode)||!reader.contains(sel.focusNode)){alert('Please select text inside the reading area.');return}selectedRange=sel.getRangeAt(0).cloneRange();document.getElementById('wordInput').value=text;document.getElementById('selectedPreview').innerHTML='Selected text: <strong>'+esc(text)+'</strong>';document.getElementById('exInput').value=getContextSentence(text);document.getElementById('zhInput').focus()}
+function getContextSentence(text){const all=document.getElementById('reader').innerText||'';const idx=all.toLowerCase().indexOf(text.toLowerCase());if(idx<0)return'';let start=Math.max(all.lastIndexOf('.',idx),all.lastIndexOf('?',idx),all.lastIndexOf('!',idx));start=start<0?0:start+1;let end=all.length;['.','?','!'].forEach(p=>{const x=all.indexOf(p,idx+text.length);if(x>=0)end=Math.min(end,x+1)});return all.slice(start,end).trim()}
+function saveCurrentWord(){const word=normalizeWord(document.getElementById('wordInput').value);if(!word){alert('Please select or type a word first.');return}const bank=loadBank();const old=bank.find(x=>x.word.toLowerCase()===word.toLowerCase());const item={word,partOfSpeech:document.getElementById('posInput').value,chineseTranslation:document.getElementById('zhInput').value.trim(),englishDefinition:document.getElementById('defInput').value.trim(),exampleSentence:document.getElementById('exInput').value.trim(),savedAt:old?old.savedAt:Date.now()};if(old){Object.assign(old,item)}else{bank.push(item)}saveBank(bank);applyMarkToSelection(word);clearForm();alert(old?'Updated in My Bank.':'Saved to My Bank.');}
+function applyMarkToSelection(word){if(selectedRange){try{const mark=document.createElement('mark');mark.textContent=selectedRange.toString();selectedRange.deleteContents();selectedRange.insertNode(mark);selectedRange=null;return}catch(e){}}highlightSavedInReader()}
+function clearForm(){['wordInput','zhInput','defInput','exInput'].forEach(id=>document.getElementById(id).value='');document.getElementById('posInput').value='word';document.getElementById('selectedPreview').innerHTML='Selected text: <strong>none</strong>'}
+function highlightSavedInReader(){const reader=document.getElementById('reader');const text=reader.innerText;if(!text)return;const words=loadBank().map(w=>w.word).filter(w=>w&&w.length>1).sort((a,b)=>b.length-a.length).slice(0,200);if(!words.length){reader.textContent=text;return}let html=esc(text);words.forEach(w=>{const safe=esc(w).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const re=new RegExp('(?<![A-Za-z])('+safe+')(?![A-Za-z])','gi');html=html.replace(re,'<mark>$1</mark>')});reader.innerHTML=html}
+function updateStats(){const b=loadBank();document.getElementById('bankCount').textContent=b.length;const total=document.getElementById('statTotal');if(total){total.textContent=b.length;const today=new Date();today.setHours(0,0,0,0);document.getElementById('statToday').textContent=b.filter(w=>w.savedAt>=today.getTime()).length;document.getElementById('statWithZh').textContent=b.filter(w=>(w.chineseTranslation||'').trim()).length;}}
+function switchMode(mode){['list','flash','quiz','export'].forEach(m=>{document.getElementById('mode-'+m).style.display=m===mode?'block':'none';document.getElementById('tab-'+m).classList.toggle('active',m===mode)});if(mode==='flash')showFlash();if(mode==='quiz')document.getElementById('quizBox').innerHTML=''}
+function renderBank(){const bank=loadBank();const q=(document.getElementById('searchInput')?.value||'').toLowerCase();const list=document.getElementById('bankList');const filtered=bank.filter(w=>!q||w.word.toLowerCase().includes(q)||(w.chineseTranslation||'').toLowerCase().includes(q)||(w.englishDefinition||'').toLowerCase().includes(q));if(!filtered.length){list.innerHTML='<div class="empty"><div class="big">📚</div><p>No saved words yet. Go to Read & Highlight, select a word, then save it.</p></div>';return}list.innerHTML='';filtered.slice().reverse().forEach(w=>{const row=document.createElement('div');row.className='word-row';row.innerHTML='<div class="word">'+esc(w.word)+'</div><div class="pos">'+esc(w.partOfSpeech||'word')+'</div><div class="zh">'+esc(w.chineseTranslation||'—')+'</div><div class="def">'+esc(w.englishDefinition||w.exampleSentence||'')+'</div><button class="del" title="delete" onclick="deleteWord(\''+esc(w.word).replace(/'/g,"\\'")+'\')">✕</button>';list.appendChild(row)})}
+function deleteWord(word){if(!confirm('Delete '+word+'?'))return;saveBank(loadBank().filter(w=>w.word.toLowerCase()!==word.toLowerCase()));renderBank();highlightSavedInReader()}
+function clearBank(){if(confirm('Clear all saved words?')){saveBank([]);renderBank();highlightSavedInReader()}}
+function showFlash(){const b=loadBank();if(!b.length){document.getElementById('fcWord').textContent='No words';document.getElementById('fcPos').textContent='';document.getElementById('fcZh').textContent='Add words first';document.getElementById('fcDef').textContent='';document.getElementById('fcEx').textContent='';document.getElementById('fcCounter').textContent='0 / 0';return}flashIndex=Math.min(flashIndex,b.length-1);const w=b[flashIndex];document.getElementById('fcWord').textContent=w.word;document.getElementById('fcPos').textContent=w.partOfSpeech||'';document.getElementById('fcZh').textContent=w.chineseTranslation||'No Chinese note yet';document.getElementById('fcDef').textContent=w.englishDefinition||'';document.getElementById('fcEx').textContent=w.exampleSentence?'“'+w.exampleSentence+'”':'';document.getElementById('fcCounter').textContent=(flashIndex+1)+' / '+b.length;flipped=false;document.getElementById('flashcard').classList.remove('flipped')}
+function flipCard(){flipped=!flipped;document.getElementById('flashcard').classList.toggle('flipped',flipped)}
+function moveCard(d){const b=loadBank();if(!b.length)return;flashIndex=(flashIndex+d+b.length)%b.length;showFlash()}
+function startQuiz(){const b=loadBank().filter(w=>w.chineseTranslation);if(b.length<4){alert('Need at least 4 saved words with Chinese notes.');return}const pool=[...b].sort(()=>Math.random()-.5).slice(0,Math.min(8,b.length));quizState=pool.map(w=>{const wrong=b.filter(x=>x.word!==w.word).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.chineseTranslation);const opts=[w.chineseTranslation,...wrong].sort(()=>Math.random()-.5);return{word:w.word,answer:w.chineseTranslation,options:opts}});answered=0;correct=0;const box=document.getElementById('quizBox');box.innerHTML='';quizState.forEach((q,i)=>{const card=document.createElement('div');card.className='quiz-card';card.innerHTML='<h3>Q'+(i+1)+'. What does <em>'+esc(q.word)+'</em> mean?</h3>'+q.options.map(o=>'<button class="option" onclick="pickOption(this,'+i+',\''+esc(o).replace(/'/g,"\\'")+'\')">'+esc(o)+'</button>').join('');box.appendChild(card)});}
+function pickOption(btn,i,opt){const card=btn.closest('.quiz-card');if(card.dataset.done)return;card.dataset.done='1';const q=quizState[i];card.querySelectorAll('.option').forEach(b=>{b.disabled=true;if(b.textContent===q.answer)b.classList.add('correct')});if(opt===q.answer){correct++}else{btn.classList.add('wrong')}answered++;if(answered===quizState.length){const div=document.createElement('div');div.className='score';div.innerHTML='<p>Quiz complete</p><b>'+correct+'</b> / '+quizState.length;document.getElementById('quizBox').appendChild(div)}}
+function exportCSV(){const b=loadBank();if(!b.length){alert('No words to export.');return}const header=['Word','Part of Speech','Chinese Note','English Definition','Example','Date Saved'];const rows=b.map(w=>[w.word,w.partOfSpeech,w.chineseTranslation,w.englishDefinition,w.exampleSentence,new Date(w.savedAt).toLocaleDateString()].map(x=>'"'+String(x||'').replace(/"/g,'""')+'"').join(','));const blob=new Blob(['\uFEFF'+[header.join(','),...rows].join('\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='vocablens_vocabulary_bank.csv';a.click();URL.revokeObjectURL(a.href)}
+document.addEventListener('selectionchange',()=>{const sel=window.getSelection();const reader=document.getElementById('reader');if(sel&&sel.toString().trim()&&reader.contains(sel.anchorNode)&&reader.contains(sel.focusNode)){document.getElementById('selectedPreview').innerHTML='Selected text: <strong>'+esc(normalizeWord(sel.toString()))+'</strong>'}});
+updateStats();
+</script>
+</body>
+</html>
